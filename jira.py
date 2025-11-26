@@ -21,7 +21,7 @@ def get_jira_issue() -> str:
     """
     jira_url = (
         f"{api_base_url}/rest/agile/1.0/board/71043/issue"
-        "?jql=assignee=NRS1FE+and+status+IN+(%22In+Progress%22)"
+        "?jql=assignee=NRS1FE+and+status+IN+(%22In+Progress%22,%22To+Do%22)"
         "&fields=summary,description,status&orderBy=+updated"
     )
     response = requests.get(jira_url, headers=auth_headers)
