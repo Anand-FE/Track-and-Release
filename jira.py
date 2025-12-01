@@ -1,15 +1,13 @@
-import requests
-from dotenv import load_dotenv
-import os
+import httpx
 import json
 
-load_dotenv()
+from config import settings
 
-api_base_url = os.getenv('API_BASE_URL')
-current_user = os.getenv('CURRENT_USER')
-board_id = os.getenv('BOARD_ID')
-# Use single quotes inside f-strings to avoid quoting issues
-auth_headers = {"Authorization": f"Bearer {os.getenv('ACCESS_TOKEN')}"}
+# Load configuration settings
+api_base_url = settings.api_base_url
+auth_headers = {"Authorization": f"Bearer {settings.access_token}"}
+
+
 
 def get_jira_issue() -> str:
     """Fetch JIRA issues and return a JSON array string matching the requested format.
@@ -21,11 +19,11 @@ def get_jira_issue() -> str:
     ]
     """
     jira_url = (
-        f"{api_base_url}/rest/agile/1.0/board/{board_id}/issue"
-        "?jql=assignee={current_user}+and+status+IN+(%22In+Progress%22,%22To+Do%22)"
+        f"{api_base_url}/rest/agile/1.0/board/{settings.board_id}/issue"
+        f"?jql=assignee={settings.current_user}+and+status+IN+(%22In+Progress%22,%22To+Do%22)"
         "&fields=summary,description,status&orderBy=+updated"
     )
-    response = requests.get(jira_url, headers=auth_headers)
+    response = httpx.get(jira_url, headers=auth_headers)
 
     # On non-200 responses return a JSON object with error details
     if response.status_code != 200:
@@ -65,7 +63,7 @@ def get_jira_issue_details(issue_key: str) -> str:
         str: A JSON string containing detailed information about the issue.
     """ 
     jira_url = f"{api_base_url}/rest/api/2/issue/{issue_key}"
-    response = requests.get(jira_url, headers=auth_headers)
+    response = httpx.get(jira_url, headers=auth_headers)
 
     if response.status_code != 200:
         return json.dumps({
@@ -117,7 +115,7 @@ def update_jira_issue_content(issue_key: str, new_description: str,new_title:str
             "summary": new_title
         }
     }
-    response = requests.put(jira_url, headers={**auth_headers, "Content-Type": "application/json"}, json=payload)
+    response = httpx.put(jira_url, headers={**auth_headers, "Content-Type": "application/json"}, json=payload)
 
     if response.status_code == 204:
         return f"Issue {issue_key} updated successfully."
@@ -138,7 +136,7 @@ def add_jira_comment_to_issue(issue_key: str, comment: str) -> str:
     payload = {
         "body": comment
     }
-    response = requests.post(jira_url, headers={**auth_headers, "Content-Type": "application/json"}, json=payload)
+    response = httpx.post(jira_url, headers={**auth_headers, "Content-Type": "application/json"}, json=payload)
 
     if response.status_code == 201:
         return f"Comment added to issue {issue_key} successfully."
@@ -168,7 +166,7 @@ def create_jira_issue(summary: str, description: str, issue_type: str = "Task") 
             }
         }
     }
-    response = requests.post(jira_url, headers={**auth_headers, "Content-Type": "application/json"}, json=payload)
+    response = httpx.post(jira_url, headers={**auth_headers, "Content-Type": "application/json"}, json=payload)
 
     if response.status_code == 201:
         issue_key = response.json().get("key")
