@@ -5,8 +5,9 @@ import json
 
 load_dotenv()
 
-api_base_url = "https://rb-tracker.bosch.com/tracker19"
-
+api_base_url = os.getenv('API_BASE_URL')
+current_user = os.getenv('CURRENT_USER')
+board_id = os.getenv('BOARD_ID')
 # Use single quotes inside f-strings to avoid quoting issues
 auth_headers = {"Authorization": f"Bearer {os.getenv('ACCESS_TOKEN')}"}
 
@@ -20,8 +21,8 @@ def get_jira_issue() -> str:
     ]
     """
     jira_url = (
-        f"{api_base_url}/rest/agile/1.0/board/71043/issue"
-        "?jql=assignee=NRS1FE+and+status+IN+(%22In+Progress%22,%22To+Do%22)"
+        f"{api_base_url}/rest/agile/1.0/board/{board_id}/issue"
+        "?jql=assignee={current_user}+and+status+IN+(%22In+Progress%22,%22To+Do%22)"
         "&fields=summary,description,status&orderBy=+updated"
     )
     response = requests.get(jira_url, headers=auth_headers)
